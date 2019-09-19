@@ -1,0 +1,127 @@
+创建证书登陆
+$ mkdir /home/git/.ssh $ chmod 700 /home/git/.ssh
+
+$ touch 700 /home/git/.ssh/authorized_keys
+
+$ chmod 600 /home/git/.ssh/authorized_keys
+
+注意，如果是采用的sudo方式来创建git和相应的文件的，需要设置/home/git/.ssh/的owner为git，否则还是每次要输入密码的。
+
+# owner改为git $ sudo chown -R git:git /home/git/.ssh/
+
+创建密钥
+$ ssh-keygen -t rsa -C "youremail@example.com"
+
+
+初始化Git仓库
+
+$ cd /srv
+
+$ mkdir gitrepo
+
+$ chown git:git gitrepo/
+
+$ cd gitrepo
+
+# 创建一个空的Git仓库，服务器上的Git仓库通常都以.git结尾 
+
+$ git init --bare project.git
+
+# 将仓库所属用户改为git 
+
+$ chown -R git:git project.git
+
+git 常用命令
+
+git init  //初始化本地git仓库
+
+git add<file>  //添加文件
+
+git add *.html  //添加一类文件
+
+git add .  //添加所有文件
+
+git status //查看状态
+
+git commit //提交
+
+git commit -m ''提交并注释 （这样就可以不用进入到编辑页面了）
+
+git push  //从远程仓库考取数据
+
+git clone  //从远程仓库拷贝数据
+
+git config --global user.name'张宜成'  配置用户名
+
+git config -- global user.email 'chengchengzhang123@qq.com' 配置邮箱
+
+git rm --cached 文件名  //从add工作区中删除
+
+git branch 分支名 （创建分支）
+
+git checkout 分支名 （切换到你的分支中）
+
+git checkout master（切换到主分支）
+
+git merge 分支名(在master主分支下使用 将分支合并到主分支)
+
+git remote 查看连接
+
+git remote add origin 链接  （创建链接）
+
+git remote remove 名称（删除remote）
+
+git clone 将服务器端的项目克隆岛本地仓库
+
+touch .gitignore 忽略需要上传的文件（将要忽略的文件放到该文件夹）
+
+touch.gitignore 忽略文件（/文件名）
+
+README.md文档 git对项目进行描述
+
+$ git push origin master //推送到远程仓库
+
+git remote -v  查看remote的信息
+
+安装过程中遇到的问题：
+Your branch is based on 'origin/xxxx', but the upstream is gone
+
+解决：
+git config --get branch.origin.remote  查看本地连接的远程分支，如果没有 则需要进行远程分支的创建
+
+git push -u origin master  将本地仓库推到远程仓库
+
+
+问题：
+Your branch is based on 'origin/home_branch', but the upstream is gone
+
+git config --get branch.source.remote
+
+你不用知道git是怎么把远程和本地分支关联起来的，输入如下两条命令（注意：这里是以本地的source为例）：
+
+git config --get branch.source.remote
+>origin
+1
+2
+这条说明返回的是本地分支连接的远程名称为origin 一般来说默认远程都是这个名字
+
+git config --get branch.source.merge
+>refs/heads/master
+1
+2
+这条说明本地的这条source分支是和远程的master分支关联的（注意：即使远程的master分支已经被删除了，这里还是会保留master的关联，所以这才是这个问题的关键所在）
+联系这两条内容，可以知道远程名为origin，并且本地分支source所关联的远程分支为master
+好的，我们接着输入：
+
+git branch -a
+
+这里是解决方法，–set-upstream-to命令来更改本地分支关联的远程分支，这个命令会把branch.source.remote和branch.source.merge都更改
+
+输入（这里把本地分支的关联更改为远程的source分支，确保远程的source事先已经存在）：
+
+$ git branch --set-upstream-to=origin/source
+
+
+
+
+
