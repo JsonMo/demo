@@ -1,0 +1,20 @@
+用git clone 获取服务器上的代码
+
+[root@localhost code]$ git clone root@192.168.57.61:/root/code.git 
+
+报错如下：
+
+bash: git-upload-pack: command not found
+fatal: The remote end hung up unexpectedly
+
+什么原因呢？原来代码服务器【192.168.57.61】上的git安装路径是/usr/local/git，不是默认路径，根据提示，在git服务器192.168.57.61上， 建立链接文件：
+
+[root@localhost code]# ln -s /usr/local/git/bin/git-upload-pack /usr/bin/git-upload-pack 
+
+再次，执行git clone ，果真可以了。
+
+当然，如果无法修改git代码服务器上配置，可以在clone时，添加--upload-pack选项来指定git服务器上的git-upload-pack 路径，达到上面相同的目的，如下所示：
+
+[root@localhost code]$ git clone --upload-pack "/usr/local/git/bin/git-upload-pack" root@192.168.57.61:/root/code.git 
+
+当然，也许你会遇到git-receive-pack 之类的错误，很有可能和这个原理是一样的，请采用类似的操作即可！
