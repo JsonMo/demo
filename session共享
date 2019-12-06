@@ -1,0 +1,33 @@
+1、ip_hash   在 nginx 中配置
+
+优点：
+1、配置简单，对应用无侵入，不需要修改代码
+2、只要hash属性是均匀的，多台web-service的负载时均衡的
+3、便于服务器水平扩展
+4、安全性较高
+
+缺点：
+1、服务器重启，会造成部分session丢失
+2、水平扩展中也会造成部分session丢失
+3、存在单点负载高的风险
+
+二、服务器session复制
+
+修改server.xml 
+
+<Engine defaultHost = 'localhost' name= 'catalina'>
+
+<Clister className= "org.apache.catalina.ha,tcp.SimpleTcpCluster"/>
+
+优点：
+1、session 复制简单 
+2、安全性高
+3、能适应各种负载均衡策略
+4、对应用无侵入，不需要修改代码
+5、服务重启宕机不会session丢失
+
+缺点：
+1、session同步会有一定的延迟
+2、占用内网带宽资源
+3、受制于内存资源，水平扩展能力差
+4、序列化反序列化小号cpu性能
