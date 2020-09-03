@@ -1,0 +1,47 @@
+package com.pp2s.wechat.config;
+
+import com.alibaba.fastjson.JSON;
+import com.pp2s.wechat.util.LoginUtil;
+import com.pp2s.wechat.util.ResponseUtil;
+import com.pp2s.wechat.util.SessioinUser;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * 登录拦截器
+ * @author nan
+ * @date 2019年8月14日
+ */
+@Configuration
+@Slf4j
+public class LoginHandlerInterceptor extends HandlerInterceptorAdapter{
+    
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
+
+        log.info("请求url： " + request.getRequestURL());
+        if(LoginWhiteList.getWhiteList().contains(request.getRequestURI().toString())){
+            return true;
+        }
+
+        if(SessioinUser.currentUser()!=null) {
+                return true;
+        }
+
+        if(LoginUtil.currentUser()!=null){
+            return true;
+        }
+        
+        ResponseUtil<String> loginInvalidation = new ResponseUtil<>();
+        response.setCharacterEncoding("utf-8");
+        loginInvalidation.setMessage("please login first!").setStatusCode(ResponseUtil.LOGIN_INVALIDATION).setSuccess(false);
+        response.getWriter().write(JSON.toJSONString(loginInvalidation));
+        return false;
+    }
+    
+}
