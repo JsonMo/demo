@@ -1,0 +1,254 @@
+package com.pp2s.wechat.util;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+
+import javax.net.ssl.SSLContext;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.util.EntityUtils;
+
+import com.alibaba.fastjson.JSON;
+
+/**
+ * http请求工具
+ * @author nan
+ * @date 2019年8月12日
+ */
+public class HttpClientUtil {
+
+    /**
+     * 以map形式发起请求,请确保请求接口的返回结果为JSON
+     * @param url 请求url
+     * @param header 请求头
+     * @param body 参数
+     * @param t 返回结果类型
+     * @return
+     */
+    public  static <T> T doPostMap(String url,Map<String, String> header,Object params,Class<T> t) {
+        String result = null;
+        try {
+            HttpClient httpClient = creatHttpClient();
+            HttpPost httpPost = null;
+            httpPost = new HttpPost(url);
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/x-www-form-urlencoded;charset=utf-8;");
+
+            if (header != null) {
+                Set<Entry<String, String>> entrySet = header.entrySet();
+                for (Entry<String, String> entry : entrySet) {
+                    httpPost.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+
+            //设置参数
+            if(params!=null) {
+                List<NameValuePair> paramList = new ArrayList<NameValuePair>();
+                Map<String, Object> body = objectToMap(params);
+                body.forEach((key,value)->{paramList.add(new BasicNameValuePair(key, value.toString()));});
+
+                UrlEncodedFormEntity entity = new UrlEncodedFormEntity(paramList, "utf-8");
+                httpPost.setEntity(entity);
+            }
+            HttpResponse response = httpClient.execute(httpPost);
+
+            if (response != null) {
+                org.apache.http.HttpEntity resEntity = response.getEntity();
+                if (resEntity != null) {
+                    result = EntityUtils.toString(resEntity, "utf-8");
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return JSON.parseObject(result, t);
+    }
+
+    /**
+     * 以JSON字符串形式传参,请确保请求接口的返回结果也为JSON
+     *
+     * @param url 请求url
+     * @param header 请求头
+     * @param body 请求参数
+     * @param t 返回结果类型
+     * @return
+     */
+    public static <T> T doPostJSON(String url, Map<String, String> header, String body,Class<T> t) {
+
+        String resStr = null;
+        try {
+            HttpClient httpClient = creatHttpClient();
+            HttpPost httpPost = null;
+            httpPost = new HttpPost(url);
+            httpPost.setHeader("Content-type", "application/json;charset=utf-8");
+
+            if (header != null) {
+                Set<Entry<String, String>> entrySet = header.entrySet();
+                for (Entry<String, String> entry : entrySet) {
+                    httpPost.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            if (body != null) {
+                StringEntity stringEntity = new StringEntity(body,"utf-8");
+                httpPost.setEntity(stringEntity);
+            }
+            HttpResponse response = httpClient.execute(httpPost);
+
+            if (response != null) {
+                HttpEntity resEntity = response.getEntity();
+                if (resEntity != null) {
+                    resStr = EntityUtils.toString(resEntity, "utf-8");
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return JSON.parseObject(resStr, t);
+    }
+
+    /**
+     * 以XML字符串形式传参,请确保请求接口的返回结果也为XML
+     *
+     * @param url 请求url
+     * @param header 请求头
+     * @param body 请求参数
+     * @param t 返回结果类型 (仅支持返回带有@XStreamAlias("接口约定的")注解的实体)
+     */
+    public static <T> T doPostXml(String url, Map<String, String> header, String body,Class<T> t) {
+
+        String resStr = null;
+        try {
+            HttpClient httpClient = creatHttpClient();
+            HttpPost httpPost = null;
+            httpPost = new HttpPost(url);
+            httpPost.setHeader("Content-type", "application/json;charset=utf-8");
+            if (header != null) {
+                Set<Entry<String, String>> entrySet = header.entrySet();
+                for (Entry<String, String> entry : entrySet) {
+                    httpPost.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            if (body != null) {
+                StringEntity stringEntity = new StringEntity(body,"utf-8");
+                httpPost.setEntity(stringEntity);
+            }
+            HttpResponse response = httpClient.execute(httpPost);
+            if (response != null) {
+                HttpEntity resEntity = response.getEntity();
+                if (resEntity != null) {
+                    resStr = EntityUtils.toString(resEntity, "utf-8");
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return XmlUtil.xmlToPojo(t, resStr);
+    }
+    /**
+     * 以字符串形式传参
+     *
+     * @param url 请求url
+     * @param header 请求头
+     * @param body 请求参数
+     * @param t 返回结果类型
+     * @return
+     */
+    public static <T> T doGet(String url, Map<String, String> header,Object paramsObj,Class<T> t) {
+
+        String resStr = null;
+        String result = null;
+        try {
+            HttpClient httpClient = creatHttpClient();
+            HttpGet httpGet = null;
+            if(paramsObj!=null) {
+                Map<String, Object> params =  objectToMap(paramsObj);
+                StringBuilder urlBuilder = new StringBuilder(url);
+                urlBuilder.append("?");
+                params.forEach((key,value)->{urlBuilder.append(key).append("=").append(value).append("&");});
+                url = urlBuilder.substring(0, urlBuilder.length()-1);
+            }
+
+            httpGet = new HttpGet(url);
+            httpGet.setHeader("Content-type", "application/json;charset=utf-8");
+            if (header != null) {
+                Set<Entry<String, String>> entrySet = header.entrySet();
+                for (Entry<String, String> entry : entrySet) {
+                    httpGet.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            HttpResponse response = httpClient.execute(httpGet);
+            if (response != null) {
+                HttpEntity resEntity = response.getEntity();
+                if (resEntity != null) {
+                    resStr = EntityUtils.toString(resEntity, "utf-8");
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return JSON.parseObject(resStr, t);
+    }
+
+
+    /**
+     * 对象转map
+     * @param obj 待转对象
+     */
+    @SuppressWarnings({ "unused", "unchecked", "rawtypes" })
+    public static Map<String,Object> objectToMap(Object obj){
+        Map<String,Object> result = new TreeMap<>();
+        if(obj instanceof Map) {
+            ((Map) obj).forEach((key,value)->{result.put(key.toString(), value);});
+            return result;
+        }
+        Method[] methods = obj.getClass().getMethods();
+        for(Method method:methods) {
+            String methodName = method.getName();
+            if(methodName.startsWith("get")&&!"getClass".equals(methodName)) {
+                String key = methodName.toLowerCase().charAt(3)+methodName.substring(4, methodName.length());
+                String value = null;
+                try {
+                    Object temp = method.invoke(obj,new Object[0]);
+                    if(temp!=null&&!"".equals(temp.toString())) {
+                        value = temp.toString();
+                        result.put(key, value);
+                    }
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 忽略证书
+     * @return
+     * @throws Exception
+     */
+    private static  HttpClient creatHttpClient() throws Exception {
+        SSLContext sslContext = SSLContextBuilder.create().setProtocol(SSLConnectionSocketFactory.SSL).loadTrustMaterial((x,y)->true).build();
+        RequestConfig config = RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build();
+        return HttpClientBuilder.create().setDefaultRequestConfig(config).setSSLContext(sslContext).setSSLHostnameVerifier((x, y) -> true).build();
+    }
+
+}
