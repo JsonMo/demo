@@ -1,0 +1,22 @@
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * 拦截器注册类
+ * @author nan
+ * @date 2019年8月14日
+ */
+@Configuration
+public class InterceptorRegister implements WebMvcConfigurer{
+
+    @Autowired
+    private LoginHandlerInterceptor loginInterceptor;
+    
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/**");
+    }
+    
+}
