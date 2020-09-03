@@ -1,0 +1,35 @@
+package com.cobazaar.blastingmonitoring.module.user.utils;
+
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * @Author mao
+ * @create 2019/3/26 0026 18:07
+ */
+public class HelpUtils {
+
+    /**
+     * 获取空属性==>数组
+     * @param source
+     * @return
+     */
+    public static String[] getNullPropertyNames (Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
+
+        Set<String> emptyNames = new HashSet<String>();
+        for(java.beans.PropertyDescriptor pd : pds) {
+            Object srcValue = src.getPropertyValue(pd.getName());
+            if (srcValue == null) {emptyNames.add(pd.getName());}
+        }
+        String[] result = new String[emptyNames.size()];
+        return emptyNames.toArray(result);
+    }
+
+
+
+}
